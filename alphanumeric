@@ -1,0 +1,33 @@
+#!/bin/bash
+# validAlphaNum--exsures that input sonsists only of alphanumeric characters
+
+validAlphaNum(){
+  #validate arg: returns 0 if all upper_lower_digirs; 1 otherwise
+
+  #removes all unaccepatable characters
+  # sed -e 's/[^[:alnum:]]//g' - alphanumeric
+  # sed 's/[^[:uppser:] ,.]//g' - allows uppercase spaces and commas
+  # sed 's/[^- [:digit:]\(\)]//g' - checks digits and allows spaces, parenthes, dashes but not leading or multiple spaces
+  validchars="$(echo $1 | sed -e 's/[^[:alnum:]]//g')"
+
+  if [ "$validchars" = "$1" ] ; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+# begin main script -- delete or comment out everthing below if you want to include this in other scripts
+# ======================
+/bin/echo -n "Enter input: "
+read input
+
+#validate input
+if ! validAlphaNum "$input" ; then
+  echo "please enter only letters and nums" >&2
+  exit 1
+else
+  echo "input valid"
+fi
+
+exit 0

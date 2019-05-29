@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+#nicenumber - given a number, shows it in comma seperated form.
+# expects DD (Decimal Point Delimiter) and TD (Thoudans delimiter) to be instatiated
+# instatiates nicenum or, if a second arg is specified, the output is echoed to stdout
+
+nicenumber() {
+    # note - '.' is assumed the decimal seperator on input
+    # decimal seperator on output is '.' unless told otherwise by -d flag
+
+
+    seperator="$(echo $1 | sed 's/[[:digit:]]//g')"
+    if [ ! -z "$seperator" -a "$seperator" != "$DD" ]; then
+        echo "$0: Unknown decimal seperator $seperator encountered." >&2
+        exit 1
+    fi
+
+    integer=$(echo $1 | cut "-d$DD" -f1)
+    decimal=$(echo $1 | cut "-d$DD" -f2)
+    # ====== old =============
+    # integer=$(echo $1 | cut -d. -f1) #left of decimal
+    # decimal=$(echo $1 | cut -d. -f2) #right of decimal
+
+    #check number has mor than the integer part
+    if [ "$decimal" != "$1" ] ; then
+        result="${DD:= '.'}$decimal" #fractional part is included
+    fi
+
+    thousands=$integer
+
+    while [ $thousands -gt 999 ]; do
+        remainder=$(($thousands % 1000)) #three least significant digits
+
+        #'remainder' needs to be 3 digits
+        while [ ${#remainder} -lt 3 ]; do #force leading 0's
+            remainder="0$remainder"
+        done
+
+        result="${TD:=","}${remainder}${result}" #builds right to left
+        thousands=$(($thousands / 1000)) #to left of remainder
+    done
+
+    nicenum="${thousands}${result}"
+    if [ ! -z $2 ]; then
+        echo $nicenum
+    fi
+}
+
+DD="." #decimal point delimiter - seperates whole and fractional values
+TD="," #thousands delimiter
+
+# BEGIN MAIN SCRIPT
+# =======================================
+
+while getopts "d:t:" opt; do
+    case $opt in
+        d ) DD="$OPTARG"    ;;
+        t ) TD="$OPTARG"
+    esac
+done
+shift $(($OPTIND - 1))
+
+#input validation
+if [ $# -eq 0 ]; then
+    echo "Usage: $(basename $0) [-d c] [-t c] number"
+    echo "  -d specifies the decimal point delimiter"
+    echo "  -t specigies the thousandth point delimiter"
+    echo 0
+fi
+
+nicenumber $1 1 #second arg forces nicenumber to 'echo' output
