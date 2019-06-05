@@ -9,11 +9,11 @@ validint() {
     number="$1";   min="$2";   max="$3";
 
     if [[ -z $number ]]; then
-        echo "you dindt enter anything, please enter a number" >&2
+        echo "you didn't enter anything, please enter a number" >&2
         return 1
     fi
 
-    #is the rist character a '-'
+    # is the rist character a '-'
     if [[ "${number%${number#?}}" = "-" ]]; then
         testvalue="${number#?}" #grab all but first char
     else
@@ -43,3 +43,9 @@ validint() {
     fi
     return 0
 }
+
+# =============== Code added to run indapendantly, remove if added to lib ================
+
+# if validint "$1" "$2" "$3" ; then
+#   echo "Input is a valid integer within your constraints"
+# fi

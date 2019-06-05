@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+
+# Tests whether a number is a vlid floating point value
+# script CANNOT accept scientific notation (1.304e5)
+#
+# LOGIC:
+#   split the value from the "." and test whether the first hald is a valid int and the second half is >=0 (i.e. -30.8 = valid    but     -30.-8 = invalid)
+
+# to call another script, you access it with the "." annotation
+
+. validint
+
+validfloat() {
+  fvalue="$1"
+
+  #check input had decimal
+  if [[ ! -z $(echo $fvalue | sed 's/[^.]//g') ]]; then
+
+    #extract value before .
+    decimalPart="$(echo $fvalue | cut -d. -f1)"
+
+    #extract digits after .
+    fractionalPart="${fvalue#*\.}"
+
+    # test everything to the left
+    if [[ ! -z $decimalPart ]]; then
+      # ! reverses the LOGIC
+      if ! validint "$decimalPart" "" ""; then
+        return 1
+      fi
+    fi
+
+    # test to the right
+
+    #cant have negatives
+    if [[ "{$fractionalPart%${fractionalPart#?}}" = "-" ]]; then
+      echo "invalid floating point number: '-' now allowed \
+                after decimal point" >&2
+          return 1
+    fi
+    if [[ "$fractionalPart" != "" ]]; then
+      #if fractional isnt a valid int
+      if ! validint "$fractionalPart" "0" ""; then
+        return 1
+      fi
+    fi
+
+  else
+
+    #if entire value is just '-'
+    if [[ "$fvalue" = "-" ]]; then
+      echo "invalid floating point format" >&2
+      return 1
+    fi
+
+    #check reamining digits are ints
+    if ! validint "$fvalue" "" ""; then
+      return 1
+    fi
+  fi
+
+  return 0
+}
+
+if validfloat $1 ; then
+  echo "$1 is a valid floating number"
+fi
